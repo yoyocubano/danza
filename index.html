@@ -142,7 +142,6 @@
     </script>
 </head>
 <body class="bg-background text-on-surface">
-<!-- TopNavBar -->
 <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto bg-background/80 backdrop-blur-xl border-b border-tertiary/10 shadow-[0_4px_30px_rgba(217,119,6,0.1)]">
 <div class="flex items-center gap-2">
 <span class="font-display-lg-mobile text-display-lg-mobile md:text-display-lg md:font-display-lg text-secondary tracking-tight">Latitud 0</span>
@@ -153,9 +152,17 @@
 <a class="text-on-surface-variant hover:text-secondary transition-colors font-label-md text-label-md" href="#ateliers">Ateliers</a>
 <a class="text-on-surface-variant hover:text-secondary transition-colors font-label-md text-label-md" href="#comunidad">Comunidad</a>
 </div>
-<button class="bg-secondary-container text-on-secondary-container px-6 py-2 rounded-full font-label-md text-label-md hover:scale-105 transition-transform active:scale-95 duration-200">
+<div class="flex items-center gap-4">
+<button id="theme-toggle" class="text-secondary p-2 rounded-full hover:bg-secondary/10 transition-colors">
+<span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+</button>
+<button class="hidden md:block bg-secondary-container text-on-secondary-container px-6 py-2 rounded-full font-label-md text-label-md hover:scale-105 transition-transform active:scale-95 duration-200">
             Únete a la Familia
         </button>
+<button class="block md:hidden text-secondary p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
 </nav>
 <!-- Hero Section -->
 <header class="relative min-h-screen flex items-center pt-24 overflow-hidden hero-gradient">
