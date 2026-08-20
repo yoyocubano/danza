@@ -15,8 +15,10 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
 const PREMIUM_API_KEY = process.env.PREMIUM_API_KEY || '';
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS) || 60 * 1000;
 const CONTACT_RATE_LIMIT_MAX_REQUESTS = Number(process.env.CONTACT_RATE_LIMIT_MAX_REQUESTS) || 5;
+const RATE_LIMIT_CLEANUP_INTERVAL_MS = Math.max(CONTACT_RATE_LIMIT_WINDOW_MS, 60 * 1000);
 
 const contactRateLimitStore = new Map();
+let rateLimitCleanupTimer;
 
 app.disable('x-powered-by');
 
@@ -36,7 +38,7 @@ app.use(
       if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Origin not allowed by CORS policy'));
+      return callback(null, false);
     },
   })
 );
@@ -68,12 +70,21 @@ function validateContactPayload(body) {
   };
 }
 
+function purgeExpiredRateLimitEntries(now = Date.now()) {
+  const cutoff = now - CONTACT_RATE_LIMIT_WINDOW_MS;
+  for (const [key, state] of contactRateLimitStore.entries()) {
+    if (state.windowStart <= cutoff) {
+      contactRateLimitStore.delete(key);
+    }
+  }
+}
+
 function contactRateLimit(req, res, next) {
   const key = req.ip || 'unknown';
   const now = Date.now();
   const state = contactRateLimitStore.get(key) || { count: 0, windowStart: now };
 
-  if (now - state.windowStart > CONTACT_RATE_LIMIT_WINDOW_MS) {
+  if (now - state.windowStart >= CONTACT_RATE_LIMIT_WINDOW_MS) {
     state.count = 0;
     state.windowStart = now;
   }
@@ -91,6 +102,9 @@ function contactRateLimit(req, res, next) {
 
   return next();
 }
+
+rateLimitCleanupTimer = setInterval(purgeExpiredRateLimitEntries, RATE_LIMIT_CLEANUP_INTERVAL_MS);
+rateLimitCleanupTimer.unref?.();
 
 function requirePremiumAuth(req, res, next) {
   if (!PREMIUM_API_KEY) {
